@@ -24,7 +24,8 @@ if 'FACEWORKS_GRADER_CONFIG' in os.environ:
     app.config.from_envvar('FACEWORKS_GRADER_CONFIG')
 
 login_manager.init_app(app)
-engine = create_engine(app.config.get['SQL_URL'], convert_unicode=True)
+# engine = create_engine(app.config.get['SQL_URL'], convert_unicode=True)
+engine = create_engine('sqlite:///test.db', convert_unicode=True)
 db_session = scoped_session(sessionmaker(autocommit=False,
                                          autoflush=False,
                                          bind=engine))
@@ -225,9 +226,16 @@ def score_route_view():
 @app.route('/score/<vid>', methods=['GET', 'POST'])
 @login_required
 def score_view(vid):
+    if int(vid) % 500 == 0:
+        VID = 500
+    else:
+        VID = int(vid) % 500
     if request.method == 'GET':
-        image = db_session.query(Image).filter(
-            Image.id == int(vid)).one_or_none()
+
+        image = db_session.query(Image).filter(Image.id == VID).one_or_none()
+        # print('vid' + str(vid))
+        # print('******')
+        # print(image)
         if not image:
             return redirect('/score')
         return render_template('score.html', image_url='/images/' + image.md5,
@@ -238,7 +246,7 @@ def score_view(vid):
         if score == None:
             abort(405)
         score = int(score)
-        _put_score(int(current_user.get_id()), int(vid), score=score)
+        _put_score(int(current_user.get_id()), VID, score=score)
         return redirect('/score')
 
 
@@ -262,7 +270,24 @@ def cli():
 
 @cli.command()
 def run():
-    app.run('localhost', 5000, debug=True)
+    # app.run('0.0.0.0', 5000, debug=False)
+
+    from tornado.wsgi import WSGIContainer
+    from tornado.httpserver import HTTPServer
+    from tornado.ioloop import IOLoop
+    # from app import app
+
+    # http_server = HTTPServer(WSGIContainer(app))
+    # http_server.listen(5000, address="0.0.0.0")
+    # IOLoop.instance().start()
+
+    server = HTTPServer(WSGIContainer(app))
+
+    server.bind(5000, address="0.0.0.0")
+
+    server.start(4)
+
+    IOLoop.current().start()
 
 
 @cli.command()
@@ -275,7 +300,8 @@ def add_user(name):
 @cli.command()
 @click.argument('path', nargs=-1)
 def add_image(path):
-    for i in path:
+    # print(path)
+    for i in os.listdir(path[0]):
         name = os.path.basename(i)
         _add_image(name)
 
@@ -290,3 +316,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # add_image('/Users/frank/project/faceworks/grader/images/fe05f9417396e971a2653d6f3e5b51d2.jpg')

@@ -14,7 +14,7 @@ def jiayuan_api(page=1):
     }
 
     params = {
-        "sex": "f",
+        "sex": "m",
         "key": "",
         "sn": "default",
         "sv": "1",

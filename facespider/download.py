@@ -24,7 +24,7 @@ def download_image(url: str):
         return
     md5 = md5hash(img)
     suffix = url.rsplit('.')[-1]
-    with open('imgs/%s.%s' % (md5, suffix), 'wb') as f:
+    with open('male/%s.%s' % (md5, suffix), 'wb') as f:
         f.write(img)
     with open('download.log', 'a') as f:
         f.write(url + '\n')
@@ -32,7 +32,7 @@ def download_image(url: str):
 
 def main():
     count = 0
-    with open('urls.txt', 'r') as f:
+    with open('urls2.txt', 'r') as f:
         urls = f.read().splitlines()
     with open('download.log', 'r') as f:
         downloaded_urls = set(f.read().splitlines())
